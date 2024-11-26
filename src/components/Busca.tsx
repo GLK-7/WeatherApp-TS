@@ -7,15 +7,12 @@ interface Props {
 }
 
 const Busca = ({ cidade, setCidade, buscarClima }: Props) => {
-  if (!setCidade || !cidade ) {
-    return <div className="flex gap-2 my-4">...</div>;
-  }
   return (
     <div className="flex gap-2 my-4 w-full sm:w-1/2 justify-center">
       <input
         type="text"
         value={cidade}
-        onChange={(e) => setCidade(e.target.value)}
+        onChange={(e) => setCidade?.(e.target.value)}
         placeholder="Pesquisar por local"
         className="rounded px-4 shadow-md bg-white bg-opacity-20 text-white placeholder-white w-full"
       />
