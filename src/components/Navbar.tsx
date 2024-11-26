@@ -5,7 +5,7 @@ type ParentProps = {
 const Navbar = ({ children }: ParentProps) => {
   return (
     <nav>
-      <div className="bg-blue-500 h-auto flex flex-row px-4 items-center justify-between flex-wrap">
+      <div className="bg-blue-500 h-auto flex flex-row px-4">
         {children}
       </div>
     </nav>

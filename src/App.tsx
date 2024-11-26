@@ -67,19 +67,24 @@ function App() {
   return (
     <>
       <Navbar>
-        <Busca
-          cidade={cidade}
-          setCidade={setCidade}
-          buscarClima={buscarClima}
-        />
-        <h2 className="sm:text-xl text-base text-white font-semibold flex gap-2 mb-2">
-          Condições Climáticas
-          <CloudSun
-            color="#fff"
-            weight="fill"
-            className="text-xl sm:text-2xl"
+        <div className="flex flex-col items-center py-2 flex-wrap w-full">
+        <h2 className="sm:text-xl text-base text-white font-semibold flex gap-2 ml-2">
+            Weather App TS
+            <CloudSun
+              color="#fff"
+              weight="fill"
+              className="text-xl sm:text-2xl"
+            />
+          </h2>
+          <Busca
+            cidade={cidade}
+            setCidade={setCidade}
+            buscarClima={buscarClima}
           />
-        </h2>
+          
+          
+          
+        </div>
       </Navbar>
       <div className="px-4 pt-8 bg-gradient-to-b from-[#89cff0] to-[#005c99] min-h-screen justify-top flex flex-col items-center">
         {clima && <ClimaAtual clima={clima} />}
