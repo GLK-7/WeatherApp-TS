@@ -1,12 +1,15 @@
 import { MagnifyingGlass } from '@phosphor-icons/react';
 
 interface Props {
-  cidade: string;
-  setCidade: React.Dispatch<React.SetStateAction<string | null>>;
+  cidade?: string;
+  setCidade?: React.Dispatch<React.SetStateAction<string>>;
   buscarClima(): void;
 }
 
 const Busca = ({ cidade, setCidade, buscarClima }: Props) => {
+  if (!setCidade || !cidade ) {
+    return <p>...</p>;
+  }
   return (
     <div className="flex gap-2 my-4">
       <input
