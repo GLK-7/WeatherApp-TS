@@ -8,7 +8,7 @@ interface Props {
 
 const Busca = ({ cidade, setCidade, buscarClima }: Props) => {
   if (!setCidade || !cidade ) {
-    return <p>...</p>;
+    return <div className="flex gap-2 my-4">...</div>;
   }
   return (
     <div className="flex gap-2 my-4">
