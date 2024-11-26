@@ -14,7 +14,7 @@ import ClimaAtual from './components/ClimaAtual';
 import Previsao from './components/Previsao';
 
 function App() {
-  const [cidade, setCidade] = useState('');
+  const [cidade, setCidade] = useState<string>('');
   const [clima, setClima] = useState(null);
   const [previsao, setPrevisao] = useState([]);
 
