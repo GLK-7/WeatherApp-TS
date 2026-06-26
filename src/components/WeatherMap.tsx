@@ -17,7 +17,7 @@ interface WeatherMapProps {
   clima: {
     name: string;
     coord: { lon: number; lat: number };
-    weather: [{ icon: string; description: string }];
+    weather: { icon: string; description: string }[];
   } | null;
 }
 
