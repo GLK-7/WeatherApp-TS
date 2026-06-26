@@ -1,97 +1,147 @@
-// React
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
-// Modules
-import axios from 'axios';
-
-// Icons
-import { CloudSun } from '@phosphor-icons/react';
-
-// Components
 import Navbar from './components/Navbar';
 import Busca from './components/Busca';
 import ClimaAtual from './components/ClimaAtual';
 import Previsao from './components/Previsao';
+import QualidadeAr from './components/QualidadeAr';
+import WeatherMap from './components/WeatherMap';
+import AnimatedBackground from './components/AnimatedBackground';
+import LoadingScreen from './components/LoadingScreen';
+import ErrorCard from './components/ErrorCard';
+
+import { useWeather } from './hooks/useWeather';
+import { getWeatherGradient } from './utils/textFormat';
 
 function App() {
-  const [cidade, setCidade] = useState<string>('');
-  const [clima, setClima] = useState(null);
-  const [previsao, setPrevisao] = useState([]);
+  const {
+    cidade,
+    setCidade,
+    clima,
+    previsao,
+    previsaoDiaria,
+    qualidadeAr,
+    loading,
+    error,
+    buscarPorCidade,
+    buscarPorGeolocalizacao,
+  } = useWeather();
 
-  const ApiKey = import.meta.env.VITE_API_KEY || '';
-
+  // Auto-busca por geolocalização ao carregar
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
+    buscarPorGeolocalizacao();
+  }, [buscarPorGeolocalizacao]);
 
-      const response = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${ApiKey}&units=metric&lang=pt_br`
-      );
-      const cidade = response.data.name;
+  const weatherId = clima?.weather[0].id ?? 800;
+  const isNight = clima
+    ? clima.dt > clima.sys.sunset || clima.dt < clima.sys.sunrise
+    : false;
 
-      const prevResponse = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${cidade}&appid=${ApiKey}&units=metric&lang=pt_br`
-      );
-      console.log('Prev: ', prevResponse);
-      console.log('Clima: ', response);
-
-      setCidade(cidade);
-      setClima(response.data);
-      setPrevisao(
-        prevResponse.data.list
-          .sort((a: any, b: any) => a.dt - b.dt) // Ordena por 'dt' em ordem crescente
-          .slice(0, 6) // Pega os primeiros 5 elementos
-      );
-    });
-  }, [ApiKey]);
-
-  const buscarClima = async () => {
-    try {
-      const weatherResponse = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?q=${cidade}&appid=${ApiKey}&units=metric&lang=pt_br`
-      );
-      const prevResponse = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${cidade}&appid=${ApiKey}&units=metric&lang=pt_br`
-      );
-      setClima(weatherResponse.data);
-      setPrevisao(prevResponse.data.list.slice(0, 5));
-
-      console.log(clima);
-      console.log(previsao);
-    } catch (e) {
-      console.log('Erro ao buscar clima: ', e);
-    }
-  };
+  const gradient = getWeatherGradient(weatherId, isNight);
 
   return (
-    <>
-      <Navbar>
-        <div className="flex flex-col items-center py-2 flex-wrap w-full">
-        <h2 className="sm:text-xl text-base text-white font-semibold flex gap-2 ml-2">
-            Weather App TS
-            <CloudSun
-              color="#fff"
-              weight="fill"
-              className="text-xl sm:text-2xl"
-            />
-          </h2>
-          <Busca
-            cidade={cidade}
-            setCidade={setCidade}
-            buscarClima={buscarClima}
-          />
-          
-          
-          
-        </div>
-      </Navbar>
-      <div className="px-4 pt-8 bg-gradient-to-b from-[#89cff0] to-[#005c99] min-h-screen justify-top flex flex-col items-center">
-        {clima && <ClimaAtual clima={clima} />}
+    <div className={`min-h-screen bg-gradient-to-br ${gradient} transition-all duration-1000 relative`}>
+      {/* Animated background effects */}
+      <AnimatedBackground weatherId={weatherId} isNight={isNight} />
 
-        {previsao.length > 0 && <Previsao previsoes={previsao} />}
-      </div>
-    </>
+      {/* Navbar */}
+      <Navbar>
+        <Busca
+          cidade={cidade}
+          setCidade={setCidade}
+          buscarClima={buscarPorCidade}
+          buscarGeolocalizacao={buscarPorGeolocalizacao}
+          loading={loading}
+        />
+      </Navbar>
+
+      {/* Main content */}
+      <main className="relative z-10 flex flex-col items-center px-4 py-6 gap-0 pb-10">
+        {/* Error message */}
+        <AnimatePresence>
+          {error && (
+            <ErrorCard
+              message={error}
+              onDismiss={() => {}}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Loading */}
+        <AnimatePresence>
+          {loading && (
+            <motion.div
+              className="flex items-center justify-center mt-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <LoadingScreen />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Weather content */}
+        <AnimatePresence mode="wait">
+          {!loading && clima && (
+            <motion.div
+              key={clima.name}
+              className="flex flex-col items-center w-full gap-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              {/* Current weather */}
+              <ClimaAtual clima={clima} />
+
+              {/* Forecast tabs */}
+              {previsao.length > 0 && previsaoDiaria.length > 0 && (
+                <Previsao previsoes={previsao} previsaoDiaria={previsaoDiaria} />
+              )}
+
+              {/* Air quality */}
+              {qualidadeAr && <QualidadeAr qualidadeAr={qualidadeAr} />}
+
+              {/* Map */}
+              <WeatherMap clima={clima} />
+
+              {/* Footer note */}
+              <motion.p
+                className="text-white/30 text-xs mt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+              >
+                Dados fornecidos por OpenWeatherMap
+              </motion.p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Welcome screen */}
+        {!loading && !clima && !error && (
+          <motion.div
+            className="flex flex-col items-center justify-center mt-24 gap-4 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="text-white/20 text-8xl">🌤️</div>
+            <p className="text-white/60 text-lg font-medium">Bem-vindo ao WeatherApp</p>
+            <p className="text-white/40 text-sm max-w-xs">
+              Permita o acesso à sua localização ou busque uma cidade para ver a previsão do tempo.
+            </p>
+            <button
+              onClick={buscarPorGeolocalizacao}
+              className="mt-4 px-6 py-3 bg-white/20 hover:bg-white/30 border border-white/30 text-white rounded-2xl font-semibold transition-all"
+            >
+              Usar minha localização
+            </button>
+          </motion.div>
+        )}
+      </main>
+    </div>
   );
 }
 
